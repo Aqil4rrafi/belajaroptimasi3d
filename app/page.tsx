@@ -1,126 +1,142 @@
 "use client";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { KeyboardControls, useGLTF, Sky } from "@react-three/drei";
-import { Suspense, useRef, useMemo, useState } from "react";
+import React, { Suspense, useRef, useState, useCallback, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
+import { KeyboardControls, Sky, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import Player from "./components/Player";
 
-// --- Komponen Kota dengan Optimasi Culling ---
-// --- Optimasi SmartCity ---
-function SmartCity({ url, playerRef }: { url: string; playerRef: React.RefObject<THREE.Mesh | null> }) {
-  const { scene } = useGLTF(url);
-  
-  // Reusable objects untuk menghindari Garbage Collection
-  const frustum = useMemo(() => new THREE.Frustum(), []);
-  const projScreenMatrix = useMemo(() => new THREE.Matrix4(), []);
-  const _vector = useMemo(() => new THREE.Vector3(), []);
+import Player from "./components/Player";// Pastikan path benar
+import AAALoader from "./components/AAALoader";
 
-  const meshes = useMemo(() => {
-    const list: THREE.Mesh[] = [];
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        // 1. Matikan matrix auto update jika objek statis
-        mesh.matrixAutoUpdate = false;
-        mesh.updateMatrix();
-        // 2. Pre-calculate bounding sphere untuk frustum culling lebih cepat
-        if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
-        list.push(mesh);
-      }
-    });
-    return list;
-  }, [scene]);
+// Preload agar loading lebih cepat
+useGLTF.preload("/Untitled.glb");
 
-  useFrame((state) => {
-    if (!playerRef.current) return;
-
-    // Update Frustum hanya sekali per frame
-    projScreenMatrix.multiplyMatrices(state.camera.projectionMatrix, state.camera.matrixWorldInverse);
-    frustum.setFromProjectionMatrix(projScreenMatrix);
-
-    const playerPos = playerRef.current.position;
-    const maxDistSq = 150 * 150;
-
-    for (let i = 0; i < meshes.length; i++) {
-      const mesh = meshes[i];
-      
-      // Hitung jarak tanpa membuat objek Vector3 baru
-      const distSq = _vector.copy(mesh.position).distanceToSquared(playerPos);
-      
-      // Frustum culling menggunakan bounding sphere lebih ringan daripada intersectsObject penuh
-      const inFrustum = frustum.intersectsObject(mesh);
-      
-      const shouldBeVisible = distSq < maxDistSq && inFrustum;
-      
-      // Hanya update jika status berubah (mengurangi beban draw call)
-      if (mesh.visible !== shouldBeVisible) {
-        mesh.visible = shouldBeVisible;
-      }
-    }
-  });
-
-  return <primitive object={scene} />;
-}
-
-// --- Komponen Utama ---
 export default function Game() {
-  const playerRef = useRef<THREE.Mesh>(null);
-  const [joystick, setJoystick] = useState({ x: 0, y: 0, active: false });
-
-  // Handler Input Mobile
-  const handlePointer = (e: React.PointerEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-    const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-    setJoystick({ x, y, active: true });
-  };
+  const [isGameReady, setIsGameReady] = useState(false);
+  const joystickRef = useRef({ x: 0, y: 0, active: false });
 
   return (
-    <main style={{ width: "100vw", height: "100vh", background: "#111", position: "relative", touchAction: "none", overflow: "hidden" }}>
+    <main style={{ width: "100vw", height: "100vh", background: "#050505", overflow: "hidden", position: "relative" }}>
       
-      {/* UI Joystick */}
+      <AAALoader isGameReady={isGameReady} />
+
+      {/* JOYSTICK UI (DOM Manual - Anti Lag) */}
       <div 
         style={{ 
           position: "absolute", bottom: 60, left: 60, zIndex: 100, 
-          width: 120, height: 120, background: "rgba(255,255,255,0.1)", 
-          borderRadius: "50%", border: "2px solid rgba(255,255,255,0.2)",
-          touchAction: "none", userSelect: "none"
+          width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.1)", touchAction: "none" 
         }}
         onPointerDown={(e) => {
-          e.currentTarget.setPointerCapture(e.pointerId);
-          handlePointer(e);
+          (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+          joystickRef.current.active = true;
         }}
-        onPointerMove={(e) => joystick.active && handlePointer(e)}
-        onPointerUp={() => setJoystick({ x: 0, y: 0, active: false })}
+        onPointerMove={(e) => {
+          if (!joystickRef.current.active) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+          const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+          const dist = Math.sqrt(x*x + y*y);
+          joystickRef.current.x = dist > 1 ? x / dist : x;
+          joystickRef.current.y = dist > 1 ? y / dist : y;
+          
+          const knob = document.getElementById('knob');
+          if (knob) knob.style.transform = `translate(${joystickRef.current.x * 40}px, ${joystickRef.current.y * 40}px)`;
+        }}
+        onPointerUp={() => {
+          joystickRef.current = { x: 0, y: 0, active: false };
+          const knob = document.getElementById('knob');
+          if (knob) knob.style.transform = `translate(0,0)`;
+        }}
       >
-        <div style={{
-          width: 50, height: 50, background: "white", borderRadius: "50%", position: "absolute",
-          top: "50%", left: "50%", pointerEvents: "none",
-          transform: `translate(calc(-50% + ${joystick.x * 40}px), calc(-50% + ${joystick.y * 40}px))`
+        <div id="knob" style={{
+          width: 50, height: 50, borderRadius: "50%", background: "#00ff88",
+          position: "absolute", top: "50%", left: "50%", marginLeft: -25, marginTop: -25,
+          boxShadow: "0 0 15px #00ff88", pointerEvents: 'none', transition: 'transform 0.1s ease-out'
         }} />
       </div>
 
       <KeyboardControls map={[
-        { name: "forward", keys: ["ArrowUp", "KeyW"] },
-        { name: "backward", keys: ["ArrowDown", "KeyS"] },
-        { name: "left", keys: ["ArrowLeft", "KeyA"] },
-        { name: "right", keys: ["ArrowRight", "KeyD"] },
+        { name: "forward", keys: ["KeyW", "ArrowUp"] },
+        { name: "backward", keys: ["KeyS", "ArrowDown"] },
+        { name: "left", keys: ["KeyA", "ArrowLeft"] },
+        { name: "right", keys: ["KeyD", "ArrowRight"] },
       ]}>
         <Canvas 
           shadows 
           dpr={[1, 1.5]} 
-          camera={{ fov: 45, position: [0, 5, 10] }}
-          onCreated={(s) => s.scene.fog = new THREE.Fog("#111", 50, 150)}
+          gl={{ powerPreference: "high-performance", antialias: false }}
+          onCreated={({ scene }) => { scene.fog = new THREE.Fog("#050505", 20, 100); }}
         >
           <Sky sunPosition={[100, 20, 100]} />
-          <ambientLight intensity={1.5} />
-          
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} castShadow />
+
           <Suspense fallback={null}>
-            <SmartCity url="/Untitled.glb" playerRef={playerRef} />
-            <Player ref={playerRef} joystick={joystick} />
+            <SceneManager 
+                url="/Untitled.glb" 
+                onReady={() => setIsGameReady(true)} 
+            />
+            {isGameReady && <Player joystickRef={joystickRef} />}
           </Suspense>
         </Canvas>
       </KeyboardControls>
     </main>
   );
 }
+
+// --- SUB-KOMPONEN: SceneManager (OPTIMASI RENDER) ---
+function SceneManager({ url, onReady }: { url: string, onReady: () => void }) {
+  const { scene } = useGLTF(url);
+  const { gl, camera } = useThree();
+
+  const meshData = useRef<any[]>([]);
+  const frustum = useMemo(() => new THREE.Frustum(), []);
+  const projScreenMatrix = useMemo(() => new THREE.Matrix4(), []);
+
+  useEffect(() => {
+    const list: any[] = [];
+    scene.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        const m = obj as THREE.Mesh;
+        m.matrixAutoUpdate = false;
+        m.updateMatrixWorld();
+        
+        const sphere = new THREE.Sphere();
+        if (m.geometry.boundingSphere) {
+          sphere.copy(m.geometry.boundingSphere).applyMatrix4(m.matrixWorld);
+        }
+        list.push({ mesh: m, sphere });
+      }
+    });
+    meshData.current = list;
+    gl.compile(scene, camera);
+    onReady();
+  }, [scene, gl, camera, onReady]);
+
+  useFrame(() => {
+    projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(projScreenMatrix);
+    const pPos = camera.position;
+
+    for (let i = 0; i < meshData.current.length; i++) {
+      const { mesh, sphere } = meshData.current[i];
+      
+      const distSq = sphere.center.distanceToSquared(pPos);
+      
+      // 1. Distance Culling (Jauh = Hapus)
+      if (distSq > 120 * 120) { mesh.visible = false; continue; }
+      
+      // 2. Frustum Culling (Belakang Kamera = Hapus)
+      if (!frustum.intersectsSphere(sphere)) { mesh.visible = false; continue; }
+
+      // 3. Occlusion Light (Kecil & Lumayan Jauh = Anggap Tertutup)
+      if (distSq > 50 * 50 && sphere.radius < 1) { mesh.visible = false; continue; }
+
+      mesh.visible = true;
+    }
+  });
+
+  return <primitive object={scene} />;
+}
+import { useFrame, useThree } from "@react-three/fiber";
+import { useMemo } from "react";

@@ -1,83 +1,80 @@
+// Player.tsx
 "use client";
 import * as THREE from "three";
-import { useRef, forwardRef, useImperativeHandle } from "react";
+import { useRef, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useKeyboardControls, OrbitControls } from "@react-three/drei";
+import { OrbitControls, useKeyboardControls } from "@react-three/drei";
 
-interface PlayerProps {
-  joystick: { x: number; y: number; active: boolean };
-}
-
-const Player = forwardRef<THREE.Mesh, PlayerProps>(({ joystick }, ref) => {
+export default function Player({ joystickRef }: any) {
   const meshRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<any>(null);
   const { camera } = useThree();
   const [, getKeys] = useKeyboardControls();
 
-  useImperativeHandle(ref, () => meshRef.current!);
+  const physics = useMemo(() => ({
+    vel: new THREE.Vector3(),
+    joySmooth: new THREE.Vector2(),
+    fwd: new THREE.Vector3(),
+    side: new THREE.Vector3(),
+  }), []);
 
-  // Variabel persisten agar tidak membuat objek baru setiap frame (GC optimization)
-  const moveDir = new THREE.Vector3();
-  const forward = new THREE.Vector3();
-  const side = new THREE.Vector3();
-  const up = new THREE.Vector3(0, 1, 0);
-
-  useFrame((_state, delta) => {
+  useFrame((_, delta) => {
     if (!meshRef.current || !orbitRef.current) return;
 
+    const joy = joystickRef.current;
     const keys = getKeys();
-    const speed = 10;
 
-    // 1. Ambil Input (Keyboard vs Joystick)
-    let inputX = 0;
-    let inputZ = 0;
+    // 1. Smooth Input (Exponential Decay) - 20fps-120fps tetap mulus
+    const lerpFactor = 1 - Math.exp(-20 * delta);
+    physics.joySmooth.x = THREE.MathUtils.lerp(physics.joySmooth.x, joy.active ? joy.x : 0, lerpFactor);
+    physics.joySmooth.y = THREE.MathUtils.lerp(physics.joySmooth.y, joy.active ? joy.y : 0, lerpFactor);
 
-    if (joystick.active) {
-      inputX = joystick.x; 
-      inputZ = joystick.y; 
-    } else {
-      inputX = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-      inputZ = (keys.backward ? 1 : 0) - (keys.forward ? 1 : 0);
+    // 2. Gabung Input
+    let x = physics.joySmooth.x;
+    let z = physics.joySmooth.y;
+    if (!joy.active) {
+      x = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+      z = (keys.backward ? 1 : 0) - (keys.forward ? 1 : 0);
     }
 
-    // 2. Hitung Arah Berdasarkan Rotasi Kamera
-    camera.getWorldDirection(forward);
-    forward.y = 0; // Kunci sumbu Y agar tidak terbang
-    forward.normalize();
+    // 3. Arah Gerak
+    camera.getWorldDirection(physics.fwd);
+    physics.fwd.y = 0;
+    physics.fwd.normalize();
+    physics.side.crossVectors(physics.fwd, new THREE.Vector3(0, 1, 0)).normalize();
 
-    // Side = arah kanan relatif terhadap kamera
-    side.crossVectors(forward, up).normalize();
+    const targetVel = new THREE.Vector3()
+        .addScaledVector(physics.fwd, -z)
+        .addScaledVector(physics.side, x);
+    
+    if (targetVel.length() > 1) targetVel.normalize();
+    targetVel.multiplyScalar(13); // Speed
 
-    // 3. Kalkulasi Vektor Gerak Akhir
-    // -inputZ karena joystick ke atas adalah negatif, dikali forward (depan) = MAJU
-    moveDir
-      .set(0, 0, 0)
-      .addScaledVector(forward, -inputZ)
-      .addScaledVector(side, inputX)
-      .normalize()
-      .multiplyScalar(speed * delta);
+    // 4. Smooth Physics
+    physics.vel.lerp(targetVel, 1 - Math.exp(-10 * delta));
 
-    // 4. Eksekusi Gerakan
-    meshRef.current.position.add(moveDir);
-    camera.position.add(moveDir);
+    // 5. Update Posisi
+    const move = physics.vel.clone().multiplyScalar(delta);
+    meshRef.current.position.add(move);
+    camera.position.add(move);
 
-    // 5. Update Fokus Kamera (Orbit Target)
-    const targetPos = meshRef.current.position.clone();
-    targetPos.y += 1.6; // Tinggi mata player
-    orbitRef.current.target.copy(targetPos);
-    orbitRef.current.update();
+    // 6. Rotate Karakter
+    if (physics.vel.length() > 0.5) {
+      const angle = Math.atan2(physics.vel.x, physics.vel.z);
+      meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, angle, 0.15);
+    }
+
+    // 7. Kamera Follow
+    orbitRef.current.target.copy(meshRef.current.position).add(new THREE.Vector3(0, 1.6, 0));
   });
 
   return (
     <>
-      <OrbitControls ref={orbitRef} enablePan={false} enableDamping={false} makeDefault />
-      <mesh ref={meshRef} position={[0, 0.9, 0]} castShadow>
-        <boxGeometry args={[0.5, 1.8, 0.5]} />
-        <meshStandardMaterial color="orange" transparent opacity={0.6} />
+      <OrbitControls ref={orbitRef} makeDefault enableDamping dampingFactor={0.06} />
+      <mesh ref={meshRef} position={[0, 1, 0]} castShadow>
+        <capsuleGeometry args={[0.3, 1.2, 4, 16]} />
+        <meshStandardMaterial color="#00ff88" metalness={0.8} roughness={0.2} />
       </mesh>
     </>
   );
-});
-
-Player.displayName = "Player";
-export default Player;
+}

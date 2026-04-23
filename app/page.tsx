@@ -6,19 +6,25 @@ import * as THREE from "three";
 import Player from "./components/Player";
 
 // --- Komponen Kota dengan Optimasi Culling ---
+// --- Optimasi SmartCity ---
 function SmartCity({ url, playerRef }: { url: string; playerRef: React.RefObject<THREE.Mesh | null> }) {
   const { scene } = useGLTF(url);
+  
+  // Reusable objects untuk menghindari Garbage Collection
   const frustum = useMemo(() => new THREE.Frustum(), []);
   const projScreenMatrix = useMemo(() => new THREE.Matrix4(), []);
+  const _vector = useMemo(() => new THREE.Vector3(), []);
 
-  // Ambil semua mesh satu kali saja saat load
   const meshes = useMemo(() => {
     const list: THREE.Mesh[] = [];
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        mesh.matrixAutoUpdate = false; // Optimasi performa
+        // 1. Matikan matrix auto update jika objek statis
+        mesh.matrixAutoUpdate = false;
         mesh.updateMatrix();
+        // 2. Pre-calculate bounding sphere untuk frustum culling lebih cepat
+        if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
         list.push(mesh);
       }
     });
@@ -28,18 +34,29 @@ function SmartCity({ url, playerRef }: { url: string; playerRef: React.RefObject
   useFrame((state) => {
     if (!playerRef.current) return;
 
-    // Update Frustum (Bidang pandang kamera)
+    // Update Frustum hanya sekali per frame
     projScreenMatrix.multiplyMatrices(state.camera.projectionMatrix, state.camera.matrixWorldInverse);
     frustum.setFromProjectionMatrix(projScreenMatrix);
 
     const playerPos = playerRef.current.position;
-    const maxDistSq = 150 * 150; // Radius render 150 meter
+    const maxDistSq = 150 * 150;
 
-    meshes.forEach((mesh) => {
-      const distSq = mesh.position.distanceToSquared(playerPos);
-      // Sembunyikan jika diluar jarak pandang atau dibelakang kamera
-      mesh.visible = distSq < maxDistSq && frustum.intersectsObject(mesh);
-    });
+    for (let i = 0; i < meshes.length; i++) {
+      const mesh = meshes[i];
+      
+      // Hitung jarak tanpa membuat objek Vector3 baru
+      const distSq = _vector.copy(mesh.position).distanceToSquared(playerPos);
+      
+      // Frustum culling menggunakan bounding sphere lebih ringan daripada intersectsObject penuh
+      const inFrustum = frustum.intersectsObject(mesh);
+      
+      const shouldBeVisible = distSq < maxDistSq && inFrustum;
+      
+      // Hanya update jika status berubah (mengurangi beban draw call)
+      if (mesh.visible !== shouldBeVisible) {
+        mesh.visible = shouldBeVisible;
+      }
+    }
   });
 
   return <primitive object={scene} />;

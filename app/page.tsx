@@ -1,65 +1,109 @@
-import Image from "next/image";
+"use client";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { KeyboardControls, useGLTF, Sky } from "@react-three/drei";
+import { Suspense, useRef, useMemo, useState } from "react";
+import * as THREE from "three";
+import Player from "./components/Player";
 
-export default function Home() {
+// --- Komponen Kota dengan Optimasi Culling ---
+function SmartCity({ url, playerRef }: { url: string; playerRef: React.RefObject<THREE.Mesh | null> }) {
+  const { scene } = useGLTF(url);
+  const frustum = useMemo(() => new THREE.Frustum(), []);
+  const projScreenMatrix = useMemo(() => new THREE.Matrix4(), []);
+
+  // Ambil semua mesh satu kali saja saat load
+  const meshes = useMemo(() => {
+    const list: THREE.Mesh[] = [];
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        mesh.matrixAutoUpdate = false; // Optimasi performa
+        mesh.updateMatrix();
+        list.push(mesh);
+      }
+    });
+    return list;
+  }, [scene]);
+
+  useFrame((state) => {
+    if (!playerRef.current) return;
+
+    // Update Frustum (Bidang pandang kamera)
+    projScreenMatrix.multiplyMatrices(state.camera.projectionMatrix, state.camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(projScreenMatrix);
+
+    const playerPos = playerRef.current.position;
+    const maxDistSq = 150 * 150; // Radius render 150 meter
+
+    meshes.forEach((mesh) => {
+      const distSq = mesh.position.distanceToSquared(playerPos);
+      // Sembunyikan jika diluar jarak pandang atau dibelakang kamera
+      mesh.visible = distSq < maxDistSq && frustum.intersectsObject(mesh);
+    });
+  });
+
+  return <primitive object={scene} />;
+}
+
+// --- Komponen Utama ---
+export default function Game() {
+  const playerRef = useRef<THREE.Mesh>(null);
+  const [joystick, setJoystick] = useState({ x: 0, y: 0, active: false });
+
+  // Handler Input Mobile
+  const handlePointer = (e: React.PointerEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const y = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+    setJoystick({ x, y, active: true });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main style={{ width: "100vw", height: "100vh", background: "#111", position: "relative", touchAction: "none", overflow: "hidden" }}>
+      
+      {/* UI Joystick */}
+      <div 
+        style={{ 
+          position: "absolute", bottom: 60, left: 60, zIndex: 100, 
+          width: 120, height: 120, background: "rgba(255,255,255,0.1)", 
+          borderRadius: "50%", border: "2px solid rgba(255,255,255,0.2)",
+          touchAction: "none", userSelect: "none"
+        }}
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          handlePointer(e);
+        }}
+        onPointerMove={(e) => joystick.active && handlePointer(e)}
+        onPointerUp={() => setJoystick({ x: 0, y: 0, active: false })}
+      >
+        <div style={{
+          width: 50, height: 50, background: "white", borderRadius: "50%", position: "absolute",
+          top: "50%", left: "50%", pointerEvents: "none",
+          transform: `translate(calc(-50% + ${joystick.x * 40}px), calc(-50% + ${joystick.y * 40}px))`
+        }} />
+      </div>
+
+      <KeyboardControls map={[
+        { name: "forward", keys: ["ArrowUp", "KeyW"] },
+        { name: "backward", keys: ["ArrowDown", "KeyS"] },
+        { name: "left", keys: ["ArrowLeft", "KeyA"] },
+        { name: "right", keys: ["ArrowRight", "KeyD"] },
+      ]}>
+        <Canvas 
+          shadows 
+          dpr={[1, 1.5]} 
+          camera={{ fov: 45, position: [0, 5, 10] }}
+          onCreated={(s) => s.scene.fog = new THREE.Fog("#111", 50, 150)}
+        >
+          <Sky sunPosition={[100, 20, 100]} />
+          <ambientLight intensity={1.5} />
+          
+          <Suspense fallback={null}>
+            <SmartCity url="/Untitled.glb" playerRef={playerRef} />
+            <Player ref={playerRef} joystick={joystick} />
+          </Suspense>
+        </Canvas>
+      </KeyboardControls>
+    </main>
   );
 }

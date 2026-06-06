@@ -24,24 +24,24 @@ export default function Player({ joystickRef }: any) {
     const joy = joystickRef.current;
     const keys = getKeys();
 
-    // 1. Smooth Input (Exponential Decay) - 20fps-120fps tetap mulus
-    const lerpFactor = 1 - Math.exp(-20 * delta);
-    physics.joySmooth.x = THREE.MathUtils.lerp(physics.joySmooth.x, joy.active ? joy.x : 0, lerpFactor);
-    physics.joySmooth.y = THREE.MathUtils.lerp(physics.joySmooth.y, joy.active ? joy.y : 0, lerpFactor);
+      // 1. Smooth Input (Exponential Decay) - 20fps-120fps tetap mulus
+      const lerpFactor = 1 - Math.exp(-20 * delta);
+      physics.joySmooth.x = THREE.MathUtils.lerp(physics.joySmooth.x, joy.active ? joy.x : 0, lerpFactor);
+      physics.joySmooth.y = THREE.MathUtils.lerp(physics.joySmooth.y, joy.active ? joy.y : 0, lerpFactor);
 
-    // 2. Gabung Input
-    let x = physics.joySmooth.x;
-    let z = physics.joySmooth.y;
-    if (!joy.active) {
-      x = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-      z = (keys.backward ? 1 : 0) - (keys.forward ? 1 : 0);
-    }
+      // 2. Gabung Input
+      let x = physics.joySmooth.x;
+      let z = physics.joySmooth.y;
+      if (!joy.active) {
+        x = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        z = (keys.backward ? 1 : 0) - (keys.forward ? 1 : 0);
+      }
 
-    // 3. Arah Gerak
-    camera.getWorldDirection(physics.fwd);
-    physics.fwd.y = 0;
-    physics.fwd.normalize();
-    physics.side.crossVectors(physics.fwd, new THREE.Vector3(0, 1, 0)).normalize();
+      // 3. Arah Gerak
+      camera.getWorldDirection(physics.fwd);
+      physics.fwd.y = 0;
+      physics.fwd.normalize();
+      physics.side.crossVectors(physics.fwd, new THREE.Vector3(0, 1, 0)).normalize();
 
     const targetVel = new THREE.Vector3()
         .addScaledVector(physics.fwd, -z)

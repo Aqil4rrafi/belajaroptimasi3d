@@ -5,7 +5,6 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { KeyboardControls, Sky, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { GLTF } from "three-stdlib";
-
 import Player from "./Player";
 import AAALoader from "./AAALoader";
 

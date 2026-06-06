@@ -72,7 +72,7 @@ export default function Card({
     }
   };
 
-  // SOLUSI MUTLAK: Mendefinisikan struktur animasi menggunakan tipe Variants bawaan Framer Motion
+  // SOLUSI MUTLAK: Mendefinisikan struktur animasi menggunakan tipe *variants* bawaan Framer Motion
   const cardVariants: Variants = {
     deck: {
       y: 60,
@@ -123,7 +123,7 @@ export default function Card({
     },
   };
 
-  // Menentukan string target aktif untuk variants
+  // Menentukan untaian (*string*) target aktif untuk *variants*
   const activeAnimation = isSwipingOut ? "swipeOut" : phase;
 
   return (
@@ -143,41 +143,173 @@ export default function Card({
       dragElastic={0.7}
       onDragEnd={handleDragEnd}
       whileDrag={{ scale: 1.01 }}
-      className="absolute w-[85vw] h-[55vh] md:w-[75vw] md:h-[33vh] max-w-md md:max-w-4xl bg-white rounded-3xl shadow-[0_15px_50px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden select-none flex flex-col md:flex-row origin-bottom will-change-transform transform-gpu"
+      className="absolute
+             w-[90vw]
+             h-[60vh]
+             sm:w-[85vw]
+             sm:h-[58vh]
+             md:w-[80vw]
+             md:h-[42vh]
+             lg:w-[75vw]
+             lg:h-[48vh]
+             max-w-md
+             md:max-w-5xl
+             bg-white
+             rounded-3xl
+             shadow-[0_15px_50px_rgba(0,0,0,0.06)]
+             border
+             border-slate-100
+             overflow-hidden
+             select-none
+             flex
+             flex-col
+             md:flex-row
+             origin-bottom
+             will-change-transform
+             transform-gpu"
     >
       {data.image ? (
         <>
-          <div className="h-[45%] w-full md:h-full md:w-[40%] relative bg-slate-50 overflow-hidden shrink-0">
+          {/* GAMBAR */}
+          <div
+            className="
+          h-[38%]
+          w-full
+          md:h-full
+          md:w-[32%]
+          lg:w-[30%]
+          relative
+          bg-slate-50
+          overflow-hidden
+          shrink-0
+        "
+          >
             <img
               src={data.image}
               alt={data.title}
               className="w-full h-full object-cover pointer-events-none"
             />
+
             <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/5 to-transparent" />
           </div>
-          <div className="h-[55%] w-full md:h-full md:w-[60%] flex flex-col justify-between p-6 md:p-8 bg-white shrink-0">
-            <div className="h-[60%] flex items-center">
-              <h3 className="text-xl md:text-2xl font-black text-slate-800 line-clamp-2 md:line-clamp-3 leading-tight tracking-tight">
+
+          {/* KONTEN */}
+          <div
+            className="
+          h-[62%]
+          w-full
+          md:h-full
+          md:w-[68%]
+          lg:w-[70%]
+          flex
+          flex-col
+          p-6
+          md:p-8
+          lg:p-10
+          bg-white
+          shrink-0
+        "
+          >
+            {/* JUDUL */}
+            <div className="flex-none mb-4">
+              <h3
+                className="
+              text-xl
+              sm:text-2xl
+              md:text-3xl
+              font-black
+              text-slate-900
+              line-clamp-3
+              leading-snug
+              tracking-tight
+            "
+              >
                 {data.title}
               </h3>
             </div>
-            <div className="h-[40%] flex items-start border-t border-slate-100 pt-4">
-              <p className="text-xs md:text-sm text-slate-500 line-clamp-3 md:line-clamp-4 leading-relaxed">
+
+            {/* DESKRIPSI */}
+            <div
+              className="
+            flex-1
+            border-t
+            border-slate-100
+            pt-5
+            overflow-hidden
+          "
+            >
+              <p
+                className="
+              text-sm
+              md:text-base
+              text-slate-600
+              line-clamp-6
+              md:line-clamp-8
+              leading-relaxed
+            "
+              >
                 {data.description}
               </p>
             </div>
           </div>
         </>
       ) : (
-        <div className="w-full h-full flex flex-col justify-between p-8 md:p-10 bg-gradient-to-br from-slate-50 via-white to-indigo-50/20 relative">
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-indigo-500 to-purple-600" />
-          <div className="h-[40%] flex items-center">
-            <h3 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-900 line-clamp-2 md:line-clamp-3 leading-tight tracking-tight">
+        <div
+          className="
+        w-full
+        h-full
+        flex
+        flex-col
+        p-8
+        md:p-10
+        bg-gradient-to-br
+        from-slate-50
+        via-white
+        to-indigo-50/20
+        relative
+      "
+        >
+          {/* JUDUL */}
+          <div className="flex-none mb-6">
+            <h3
+              className="
+            text-3xl
+            md:text-4xl
+            font-black
+            bg-clip-text
+            text-transparent
+            bg-gradient-to-r
+            from-slate-800
+            to-slate-900
+            line-clamp-3
+            leading-tight
+            tracking-tight
+          "
+            >
               {data.title}
             </h3>
           </div>
-          <div className="h-[60%] flex items-start border-t border-slate-100 pt-5 md:pt-6">
-            <p className="text-sm md:text-base text-slate-600 line-clamp-5 md:line-clamp-6 leading-relaxed font-medium">
+
+          {/* DESKRIPSI */}
+          <div
+            className="
+          flex-1
+          overflow-hidden
+          border-t
+          border-slate-100
+          pt-6
+        "
+          >
+            <p
+              className="
+            text-base
+            md:text-lg
+            text-slate-600
+            line-clamp-8
+            md:line-clamp-10
+            leading-relaxed
+          "
+            >
               {data.description}
             </p>
           </div>

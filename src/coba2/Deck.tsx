@@ -103,10 +103,10 @@ export default function Deck({ initialCards }: DeckProps) {
                 <Layers className="w-12 h-12" />
               </motion.div>
               <h2 className="text-xl font-black tracking-wider text-slate-100 group-hover:text-white transition-colors">
-                BUKA DECK BOX
+                Buka Kotak Kartu
               </h2>
               <p className="text-xs text-slate-400 mt-2 font-medium max-w-[180px] text-center leading-relaxed">
-                Kartu akan keluar lewat atas secara sinematik
+                Kartu akan mengarah ke atas secara sinematik
               </p>
             </div>
           </motion.div>

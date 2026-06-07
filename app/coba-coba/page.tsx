@@ -74,7 +74,7 @@ export default function Home() {
       id: "museum-3",
       title: "Keunikan dan Manfaat Museum",
       description:
-        "Museum ini merupakan satu-satunya museum *biopaleoantropologi* di Indonesia. Gedung museum dinamai sebagai bentuk penghormatan kepada Prof. Teuku Jacob. Di halaman depan terdapat tiga kelompok patung ikonik yang menggambarkan tahapan evolusi primata. Keberadaan museum memberikan manfaat besar sebagai sarana penelitian bagi sivitas akademika sekaligus sebagai destinasi edukasi bagi masyarakat.",
+        "Museum ini merupakan satu-satunya museum biopaleoantropologi di Indonesia. Gedung museum dinamai sebagai bentuk penghormatan kepada Prof. Teuku Jacob. Di halaman depan terdapat tiga kelompok patung ikonik yang menggambarkan tahapan evolusi primata. Keberadaan museum memberikan manfaat besar sebagai sarana penelitian bagi sivitas akademika sekaligus sebagai destinasi edukasi bagi masyarakat.",
       image:
         "https://images.unsplash.com/photo-1601987077677-5346c0c57d3f?q=80&w=900&auto=format&fit=crop", // Ilustrasi galeri patung/pameran museum
     },
@@ -82,7 +82,7 @@ export default function Home() {
       id: "museum-2",
       title: "Koleksi Sejarah dan Anatomi",
       description:
-        "Museum menyajikan berbagai artefak, fosil manusia purba, tulang *subresen*, dan replika kera besar. Bagian anatomi menampilkan gambaran sistem rangka, otot, jaringan tubuh, organ, hingga spesimen embriologi manusia yang disajikan sesuai dengan ukuran aslinya.",
+        "Museum menyajikan berbagai artefak, fosil manusia purba, tulang subresen, dan replika kera besar. Bagian anatomi menampilkan gambaran sistem rangka, otot, jaringan tubuh, organ, hingga spesimen embriologi manusia yang disajikan sesuai dengan ukuran aslinya.",
     },
     {
       id: "museum-1",

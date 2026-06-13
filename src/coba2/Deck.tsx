@@ -1,24 +1,41 @@
 "use client";
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Layers, RotateCcw } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Layers,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import Card from "./Card";
-import { CardData, PhaseState } from "./types";
+import { CardData, PhaseState, SwipeDirection, SwipeSignal } from "./types";
 
 interface DeckProps {
   initialCards: CardData[];
 }
 
 export default function Deck({ initialCards }: DeckProps) {
-  const [cards, setCards] = useState<CardData[]>(initialCards);
+  const [cards, setCards] = useState<CardData[]>([]);
   const [phase, setPhase] = useState<PhaseState>("deck");
+  const [swipeSignal, setSwipeSignal] = useState<SwipeSignal | null>(null);
+
+  useEffect(() => {
+    setCards(initialCards);
+  }, [initialCards]);
 
   const handleSwipeAway = (currentIndex: number) => {
     setCards((prevCards) => {
       const updatedCards = [...prevCards];
-      const [swipedCard] = updatedCards.splice(currentIndex, 1);
-      return [swipedCard, ...updatedCards];
+      const swipedCard = updatedCards[currentIndex];
+      if (!swipedCard) return prevCards;
+
+      const filtered = updatedCards.filter((_, idx) => idx !== currentIndex);
+      // Memindahkan kartu yang ter-swipe ke indeks 0 (paling bawah/belakang)
+      return [swipedCard, ...filtered];
     });
+    setSwipeSignal(null);
   };
 
   const triggerOpenDeck = () => {
@@ -31,66 +48,113 @@ export default function Deck({ initialCards }: DeckProps) {
 
   const resetToDeck = () => {
     if (phase !== "swiper") return;
-
     setPhase("return");
-
     setTimeout(() => {
       setCards(initialCards);
       setPhase("deck");
     }, 850);
   };
 
+  const triggerAutoSwipe = (direction: SwipeDirection) => {
+    if (phase !== "swiper" || cards.length === 0) return;
+    const frontCard = cards[cards.length - 1];
+    setSwipeSignal({ cardId: frontCard.id, direction });
+  };
+
+  // RESPONSIVE BOX & CARD DIMENSIONS (Pas tanpa overflow scroll)
+  const dimensionsClass =
+    "w-[19.5rem] h-[28rem] sm:w-[22rem] sm:h-[31rem] md:w-[46rem] md:h-[26rem] lg:w-[56rem] lg:h-[29rem] xl:w-[65rem] xl:h-[33rem]";
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[700px] w-full relative select-none">
-      {/* AREA UTAMA INTERAKSI (Membungkus kartu sesuai rasio laptop/HP Anda) */}
-      <div className="relative w-[85vw] h-[55vh] md:w-[75vw] md:h-[33vh] max-w-md md:max-w-4xl flex items-center justify-center">
-        {/* DECK BOX CONTAINER */}
-        {phase !== "swiper" && (
+    <div className="flex flex-col items-center justify-center min-h-[620px] lg:min-h-[760px] w-full relative select-none px-4">
+      <div className="relative flex items-center justify-center">
+        {/* AUTOMATIC NAVIGATION BUTTONS (Hanya muncul di breakpoint lg ke atas) */}
+        <AnimatePresence>
+          {phase === "swiper" && (
+            <div className="hidden lg:block">
+              {/* TOMBOL KIRI */}
+              <motion.button
+                initial={{ opacity: 0, x: 15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 15 }}
+                onClick={() => triggerAutoSwipe("left")}
+                className="absolute -left-24 top-1/2 -translate-y-1/2 z-[1000] p-4.5 rounded-full bg-slate-900/70 backdrop-blur-xl border border-amber-500/25 text-amber-400 hover:border-amber-400 hover:text-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] active:scale-90 transition-all duration-300"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
+
+              {/* TOMBOL KANAN */}
+              <motion.button
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -15 }}
+                onClick={() => triggerAutoSwipe("right")}
+                className="absolute -right-24 top-1/2 -translate-y-1/2 z-[1000] p-4.5 rounded-full bg-slate-900/70 backdrop-blur-xl border border-amber-500/25 text-amber-400 hover:border-amber-400 hover:text-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] active:scale-90 transition-all duration-300"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+
+              {/* TOMBOL ATAS */}
+              <motion.button
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                onClick={() => triggerAutoSwipe("top")}
+                className="absolute -top-20 left-1/2 -translate-x-1/2 z-[1000] p-3.5 rounded-full bg-slate-900/70 backdrop-blur-xl border border-amber-500/25 text-amber-400 hover:border-amber-400 hover:text-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] active:scale-90 transition-all duration-300"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </motion.button>
+
+              {/* TOMBOL BAWAH */}
+              <motion.button
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                onClick={() => triggerAutoSwipe("bottom")}
+                className="absolute -bottom-20 left-1/2 -translate-x-1/2 z-[1000] p-3.5 rounded-full bg-slate-900/70 backdrop-blur-xl border border-amber-500/25 text-amber-400 hover:border-amber-400 hover:text-amber-300 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)] active:scale-90 transition-all duration-300"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </motion.button>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* CONTAINER UTAMA KOTAK */}
+        <div
+          className={`relative ${dimensionsClass} flex items-center justify-center`}
+        >
+          {/* GLASSMORPHISM BOX DECK */}
           <motion.div
             onClick={triggerOpenDeck}
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 1, scale: 1 }}
             animate={{
-              opacity: phase === "reveal" ? 0 : 1,
+              opacity: phase === "swiper" ? 0 : phase === "reveal" ? 0 : 1,
               scale: phase === "reveal" ? 0.95 : 1,
+              y: phase === "reveal" ? 20 : 0,
             }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            whileHover={phase === "deck" ? { scale: 1.02 } : undefined}
-            whileTap={phase === "deck" ? { scale: 0.98 } : undefined}
-            /* PERUBAHAN UKURAN: 
-              - Semula: w-64 (16rem = 256px) -> Ditambah 20% menjadi w-[19.2rem] (~307px)
-              - Semula: h-80 (20rem = 320px) -> Ditambah 30% menjadi h-[26rem] (~416px)
-            */
-            className={`absolute w-[19.2rem] h-[26rem] bg-slate-800 rounded-3xl z-[100] shadow-[0_25px_60px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center border border-slate-700/70 p-8 ${
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            whileHover={phase === "deck" ? { scale: 1.012 } : undefined}
+            whileTap={phase === "deck" ? { scale: 0.988 } : undefined}
+            className={`absolute inset-0 bg-slate-950/65 backdrop-blur-2xl rounded-3xl shadow-[0_35px_75px_rgba(0,0,0,0.75)] border-2 border-amber-500/20 p-8 z-[101] flex flex-col items-center justify-center ${
               phase === "deck" ? "cursor-pointer group" : "pointer-events-none"
             }`}
+            style={{ visibility: phase === "swiper" ? "hidden" : "visible" }}
           >
-            {/* FLAP / TUTUP ATAS DECK BOX */}
+            {/* TENTANG FLAP GRADIENT EMAS */}
             <motion.div
-              initial={{
-                rotateX: phase === "return" ? -120 : 0,
-                y: phase === "return" ? -30 : 0,
-              }}
+              initial={{ rotateX: 0, y: 0 }}
               animate={
                 phase === "reveal"
-                  ? { rotateX: -120, y: -40, opacity: 0 }
-                  : phase === "return"
-                    ? { rotateX: 0, y: 0, opacity: 1 }
-                    : { rotateX: 0, y: 0, opacity: 1 }
+                  ? { rotateX: -120, y: -45, opacity: 0 }
+                  : { rotateX: 0, y: 0, opacity: 1 }
               }
-              transition={{
-                type: "spring",
-                stiffness: 140,
-                damping: 20,
-                delay: phase === "return" ? 0.45 : 0,
-              }}
-              // Mengikuti pelebaran lebar box baru
-              className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-indigo-500 to-indigo-600 rounded-t-3xl origin-top border-b border-indigo-400/50 shadow-md flex items-center justify-center z-[102]"
+              transition={{ type: "spring", stiffness: 140, damping: 20 }}
+              className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-amber-500 to-yellow-600 rounded-t-3xl origin-top border-b border-amber-400/30 shadow-md flex items-center justify-center z-[102]"
             >
-              <div className="w-12 h-2 bg-indigo-300 rounded-full opacity-60" />
+              <div className="w-12 h-1.5 bg-amber-200/40 rounded-full" />
             </motion.div>
 
-            {/* Badan Utama Box */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-850 to-slate-900 rounded-3xl border-2 border-slate-700/40 flex flex-col items-center justify-center text-white p-8 overflow-hidden">
+            <div className="flex flex-col items-center justify-center text-center">
               <motion.div
                 animate={phase === "deck" ? { y: [0, -6, 0] } : {}}
                 transition={{
@@ -98,46 +162,51 @@ export default function Deck({ initialCards }: DeckProps) {
                   duration: 3,
                   ease: "easeInOut",
                 }}
-                className="text-indigo-400 mb-4 group-hover:text-indigo-300 transition-colors"
+                className="text-amber-400 mb-4 group-hover:text-amber-300 transition-colors"
               >
-                <Layers className="w-12 h-12" />
+                <Layers className="w-12 h-12 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]" />
               </motion.div>
-              <h2 className="text-xl font-black tracking-wider text-slate-100 group-hover:text-white transition-colors">
+              <h2 className="text-xl font-black tracking-wider bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 bg-clip-text text-transparent group-hover:brightness-110 transition-all">
                 Buka Kotak Kartu
               </h2>
-              <p className="text-xs text-slate-400 mt-2 font-medium max-w-[180px] text-center leading-relaxed">
-                Kartu akan mengarah ke atas secara sinematik
+              <p className="text-xs text-slate-400 mt-2 font-medium max-w-[200px] leading-relaxed">
+                Kartu pelayanan kesehatan akan terbuka secara sinematik
               </p>
             </div>
           </motion.div>
-        )}
 
-        {/* DISTRIBUSI KARTU AKTIF */}
-        {cards.map((card, index) => (
-          <Card
-            key={card.id}
-            data={card}
-            index={index}
-            totalCards={cards.length}
-            phase={phase}
-            onSwipeAway={handleSwipeAway}
-          />
-        ))}
+          {/* RENDERING ANTARMUKA KARTU KAMPUS */}
+          {cards.map((card, index) => (
+            <Card
+              key={card.id}
+              data={card}
+              index={index}
+              totalCards={cards.length}
+              phase={phase}
+              onSwipeAway={handleSwipeAway}
+              dimensionsClass={dimensionsClass}
+              swipeSignal={swipeSignal}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* TOMBOL KEMBALI KE DECK */}
-      {phase === "swiper" && (
-        <motion.button
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          onClick={resetToDeck}
-          className="absolute -bottom-12 flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-full text-xs font-bold tracking-wider shadow-xl border border-slate-700 active:scale-95 z-[999]"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          MASUKKAN KEMBALI KE DECK
-        </motion.button>
-      )}
+      {/* RE-INSERT TRIGGER ACCENT */}
+      <AnimatePresence>
+        {phase === "swiper" && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            onClick={resetToDeck}
+            className="mt-28 lg:mt-24 flex items-center gap-2 bg-slate-950/90 hover:bg-slate-900 text-amber-400 px-6 py-3 rounded-xl text-xs font-bold tracking-wider shadow-2xl border border-amber-500/30 backdrop-blur-md active:scale-95 transition-all z-[999]"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            MASUKKAN KEMBALI KE KOTAK
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -2,183 +2,214 @@
 import React, { useState } from "react";
 import Deck from "@/src/coba2/Deck";
 import { CardData } from "@/src/coba2/types";
+import { Stethoscope, BookOpen, Skull } from "lucide-react";
+
+type ActiveTab = "gmc" | "library" | "museum";
 
 export default function Home() {
-  // DEK 1: Informasi Perpustakaan UGM
-  const [perpustakaanCards] = useState<CardData[]>([
-    {
-      id: "ugm-4",
-      title: "Fasilitas Perpustakaan UGM",
-      description:
-        "Perpustakaan UGM menyediakan akses Wi-Fi di seluruh area, ruang belajar mandiri dan kelompok, ruang diskusi, kafe baca, serta taman belajar. Tersedia pula lebih dari 100 unit komputer untuk mengakses internet dan katalog online. ",
-      image:
-        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=900&auto=format&fit=crop",
-    },
-    {
-      id: "ugm-3",
-      title: "Layanan dan Akses Sumber Informasi",
-      description:
-        "Perpustakaan UGM menyediakan layanan peminjaman dan pengembalian koleksi, layanan referensi, serta layanan terbitan berkala. Tersedia pula layanan khusus seperti Koleksi Langka Hatta. Pengguna juga dapat mengakses lebih dari 40 paket jurnal, buku, dan basis data elektronik melalui SSO UGM.",
-      image:
-        "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=900&auto=format&fit=crop",
-    },
-    {
-      id: "ugm-2",
-      title: "Visi dan Misi Perpustakaan UGM",
-      description:
-        "Perpustakaan UGM memiliki visi menjadi pusat layanan informasi global berbasis teknologi informasi yang mendukung pembelajaran berbasis riset. Untuk mewujudkan tujuan jangka panjang tersebut, Misi yang telah ditentukan adalah menjadi pusat referensi ilmiah, mendukung Tri Dharma Perguruan Tinggi, dan menjadi rumah kedua bagi sivitas akademika.",
-    },
-    {
-      id: "ugm-1",
-      title: "Profil Perpustakaan UGM",
-      description:
-        "Berdiri sejak 1 Maret 1951, Perpustakaan UGM telah mendukung kegiatan mahasiswa dalam pembelajaran, penelitian, dan pengabdian kepada masyarakat. Sistem Perpustakaan UGM telah terintegrasi melalui Perpustakaan Pusat di Bulaksumur, 18 perpustakaan fakultas, serta Sekolah Vokasi dan Sekolah Pascasarjana.",
-      image:
-        "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=900&auto=format&fit=crop",
-    },
-  ]);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("gmc");
 
+  // DECK 1: GADJAH MADA MEDICAL CENTER (GMC) - Diurutkan dari 5 ke 1
   const [gmcCards] = useState<CardData[]>([
     {
-      id: "gmc-4",
-      title: "Hak dan Kewajiban Pasien",
+      id: "gmc-5",
+      title: "Saluran Kontak Resmi",
       description:
-        "Pasien berhak memperoleh layanan kesehatan yang adil dan bermutu, perlindungan kerahasiaan rekam medis, keterbukaan informasi biaya, keselamatan selama menjalani pelayanan, serta hak untuk memberikan persetujuan tindakan medis. Pasien juga berkewajiban memberikan informasi kesehatan secara jujur, mematuhi petunjuk tenaga kesehatan, dan menyelesaikan administrasi pelayanan sesuai ketentuan.",
+        "Hubungi layanan pusat panggilan GMC pada jam kerja resmi:<br/><br/>• <b>Pos-el (Email):</b> <span class='text-amber-400 underline'>gmc.hc@ugm.ac.id</span><br/>• <b>Layanan Pelanggan:</b> 0811-2944-064<br/>• <b>Informasi Umum:</b> 0811-2944-064",
+      link: "https://gmc.ugm.ac.id/",
+    },
+    {
+      id: "gmc-4",
+      title: "Alur Pendaftaran Pasien",
+      description:
+        "<b>Pasien Baru (Luring):</b><br/>Datang langsung ke meja pendaftaran dengan membawa kartu identitas diri yang sah.<br/><br/><b>Pasien Lama (Mandiri):</b><br/>Gunakan mesin anjungan elektronik mandiri, masukkan data diri, pilih poli tujuan, lalu cetak nomor antrean.",
+      link: "https://gmc.ugm.ac.id/",
     },
     {
       id: "gmc-3",
-      title: "Jadwal dan Kuota Layanan",
+      title: "Fasilitas & Poliklinik",
       description:
-        "Poli Umum dan Poli Gigi melayani pasien pada hari Senin sampai Jumat pukul 07.30–12.00 WIB dan 14.00–18.00 WIB, serta hari Sabtu pada sesi pagi dan siang. Layanan Konseling Psikologi tersedia pada hari Senin sampai Sabtu hingga pukul 18.30 WIB. Pendaftaran layanan psikologi dibuka secara daring setiap hari Senin pukul 10.00 WIB. Poli Refraksi Mata hanya beroperasi pada hari Kamis dengan kuota maksimal 15 pasien setiap minggu.",
+        "GMC menyediakan fasilitas kesehatan terpadu penunjang medis harian:<br/><br/>• <b>Poli Umum</b> dan <b>Poli Gigi</b><br/>• <b>Konseling Psikologi</b> dan Klinik <i>Fitness Center</i><br/>• Layanan <b>Ambulans Gawat Darurat</b> gratis untuk evakuasi pasien.",
+      image: "/GMC.png",
+      link: "https://gmc.ugm.ac.id/",
     },
     {
       id: "gmc-2",
-      title: "Poliklinik dan Pendaftaran",
+      title: "Lokasi & Jam Operasional",
       description:
-        "Poli Umum melayani penanganan kesehatan tingkat pertama dan menyediakan anjungan mandiri bagi pasien lama. Poli Gigi menerima pendaftaran daring setiap Jumat pukul 08.00 WIB, sementara Konseling Gizi hanya melayani pendaftaran luring. Untuk layanan vaksinasi, pasien wajib mengonfirmasi ketersediaan vaksin melalui WhatsApp di nomor 0895-3231-00944 sebelum berkunjung.",
-      image:
-        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=900&auto=format&fit=crop",
+        "<b>Lokasi Klinik:</b><br/>Jl. Sekip Blok L3, Sendowo, Mlati, Sleman, DI Yogyakarta 55281.<br/><br/><b>Jam Operasional Resmi:</b><br/>• Senin – Jumat: pukul 07.30 – 19.30 WIB<br/>• Sabtu: pukul 08.00 – 18.00 WIB",
+      image: "/gmc2.png",
+      link: "https://gmc.ugm.ac.id/",
     },
     {
       id: "gmc-1",
-      title: "Profil Gadjah Mada Medical Center",
+      title: "Profil Utama GMC UGM",
       description:
-        "Gadjah Mada Medical Center (GMC) merupakan pusat layanan kesehatan primer dan klinik dokter keluarga di bawah naungan Universitas Gadjah Mada yang melayani sivitas akademika maupun masyarakat umum. GMC berlokasi di Jalan Sekip Blok L3, Sendowo. Informasi administrasi dapat diperoleh melalui nomor 0813-2878-6991 atau pos-el gmc.hc@ugm.ac.id.",
-      image:
-        "https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=900&auto=format&fit=crop",
+        "<b>Gadjah Mada Medical Center (GMC)</b> adalah klinik dokter keluarga primer resmi di bawah naungan <i>Universitas Gadjah Mada</i>.<br/><br/>GMC berkomitmen memberikan pelayanan kesehatan tingkat pertama yang komprehensif, bermutu, dan terjangkau bagi seluruh sivitas akademika maupun masyarakat umum.",
+      image: "/gmc3.png",
+      link: "https://gmc.ugm.ac.id/",
     },
   ]);
 
+  // DECK 2: PERPUSTAKAAN PUSAT UGM - Diurutkan dari 5 ke 1
+  const [libraryCards] = useState<CardData[]>([
+    {
+      id: "lib-5",
+      title: "Operasional Sabtu & Kontak",
+      description:
+        "<b>Hari Sabtu:</b><br/>• <b>08.00–12.00:</b> Ruang ETD.<br/>• <b>08.00–16.00:</b> Ruang WOW, Ruang Belajar Lt. 1, Ruang Diskusi, dan Meja Informasi.<br/><br/>• <b>Pos-el (Email):</b> library@ugm.ac.id<br/>• <b>Kontak Admin:</b> 0811-2944-064",
+      link: "https://lib.ugm.ac.id/",
+    },
+    {
+      id: "lib-4",
+      title: "Jam Operasional Senin – Jumat",
+      description:
+        "<b>Senin – Jumat:</b><br/>• <b>08.00–16.00:</b> R. Koleksi Langka, R. Ilmu Sosial, R. Berkala.<br/>• <b>08.00–20.00:</b> R. ETD, R. Sirkulasi, R. Belajar Mandiri Lt. 5.<br/>• <b>08.00–22.00:</b> R. WOW, R. Belajar Lt. 1, R. Diskusi, R. TGCL, & Selasar Lt. 1.",
+      link: "https://lib.ugm.ac.id/",
+    },
+    {
+      id: "lib-3",
+      title: "Alur Akses Masuk Pintu",
+      description:
+        "Cara masuk menggunakan aplikasi <b>Simaster VNext</b>:<br/>1. Buka aplikasi, pilih menu <i>Presensi / Attendance</i>.<br/>2. Klik opsi <i>Generate QR</i>.<br/>3. Pindai kode QR pada pemindai pintu (Gate IN) dengan layar HP terang menghadap ke atas. Gunakan kode yang sama saat keluar (Gate OUT).",
+      image: "/perpusat3.JPG",
+      link: "https://lib.ugm.ac.id/",
+    },
+    {
+      id: "lib-2",
+      title: "Fasilitas & Akses Jurnal",
+      description:
+        "Perpustakaan menyediakan infrastruktur belajar modern yang sangat lengkap:<br/><br/>• Akses Wi-Fi cepat di seluruh area gedung.<br/>• Ratusan ribu koleksi cetak, digital, dan jurnal ilmiah global.<br/>• Lebih dari 100 unit komputer siap pakai untuk penelusuran informasi.",
+      image: "/perpusat2.JPG",
+      link: "https://lib.ugm.ac.id/",
+    },
+    {
+      id: "lib-1",
+      title: "Profil & Lokasi Perpustakaan",
+      description:
+        "<b>Perpustakaan Pusat UGM</b> (berdiri sejak 1951) merupakan fasilitas akademik utama penyedia sumber pengetahuan untuk riset dan studi.<br/><br/><b>Lokasi Gedung:</b><br/>Kawasan Kampus UGM Bulaksumur, Caturtunggal, Depok, Sleman, Daerah Istimewa Yogyakarta 55281.",
+      image: "/perpusat1.JPG",
+      link: "https://lib.ugm.ac.id/",
+    },
+  ]);
+
+  // DECK 3: MUSEUM BIO-PALEOANTROPOLOGI DAN ANATOMI - Diurutkan dari 5 ke 1
   const [museumCards] = useState<CardData[]>([
     {
-      id: "museum-3",
-      title: "Keunikan dan Manfaat Museum",
+      id: "mus-5",
+      title: "Informasi Kontak Hubungan",
       description:
-        "Museum ini merupakan satu-satunya museum biopaleoantropologi di Indonesia. Gedung museum dinamai sebagai bentuk penghormatan kepada Prof. Teuku Jacob. Di halaman depan terdapat tiga kelompok patung ikonik yang menggambarkan tahapan evolusi primata. Keberadaan museum memberikan manfaat besar sebagai sarana penelitian bagi sivitas akademika sekaligus sebagai destinasi edukasi bagi masyarakat.",
-      image:
-        "https://images.unsplash.com/photo-1601987077677-5346c0c57d3f?q=80&w=900&auto=format&fit=crop", // Ilustrasi galeri patung/pameran museum
+        "Untuk informasi izin penelitian khusus atau reservasi kunjungan kelompok besar, silakan hubungi korespondensi resmi laboratorium:<br/><br/>• <b>Pos-el (Email):</b> <span class='text-amber-400 underline'>museum.fk@ugm.ac.id</span>",
+      link: "https://research.fkkmk.ugm.ac.id/museum-bio-paleoantropologi-dan-anatomi/",
     },
     {
-      id: "museum-2",
-      title: "Koleksi Sejarah dan Anatomi",
+      id: "mus-4",
+      title: "Jam Operasional Kunjungan",
       description:
-        "Museum menyajikan berbagai artefak, fosil manusia purba, tulang subresen, dan replika kera besar. Bagian anatomi menampilkan gambaran sistem rangka, otot, jaringan tubuh, organ, hingga spesimen embriologi manusia yang disajikan sesuai dengan ukuran aslinya.",
+        "Museum dibuka untuk keperluan studi akademis mahasiswa maupun kunjungan masyarakat umum pada waktu berikut:<br/><br/>• <b>Senin – Jumat:</b> pukul 09.00 – 15.00 WIB.<br/>• <b>Sabtu, Minggu, & Hari Libur Nasional:</b> TUTUP.",
+      link: "https://research.fkkmk.ugm.ac.id/museum-bio-paleoantropologi-dan-anatomi/",
     },
     {
-      id: "museum-1",
-      title: "Profil dan Sejarah Museum",
+      id: "mus-3",
+      title: "Koleksi Anatomi Manusia",
       description:
-        "Museum Bio-Paleoantropologi dan Anatomi merupakan fasilitas pendidikan di bawah naungan Fakultas Kedokteran, Kesehatan Masyarakat, dan Keperawatan Universitas Gadjah Mada (FK-KMK UGM). Museum ini berdiri pada 9 September 1989 dan diresmikan oleh Menteri Pendidikan dan Kebudayaan Republik Indonesia, Prof. Dr. Fuad Hasan, bertepatan dengan peringatan 100 tahun penelitian paleoantropologi di Indonesia. Wajah baru museum yang lebih modern diresmikan oleh Rektor UGM, Prof. dr. Ova Emilia, pada 28 Oktober 2024.",
-      image:
-        "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?q=80&w=900&auto=format&fit=crop", // Ilustrasi gedung/lorong utama museum yang modern
+        "Menyediakan media pembelajaran visual anatomi medis yang lengkap:<br/><br/>• Struktur sistem rangka dan susunan tulang tubuh.<br/>• Preparat organ dalam manusia asli yang diawetkan.<br/>• Visualisasi komprehensif fase perkembangan embrio manusia.",
+      image: "/museum2.png",
+      link: "https://research.fkkmk.ugm.ac.id/museum-bio-paleoantropologi-dan-anatomi/",
+    },
+    {
+      id: "mus-2",
+      title: "Koleksi Sejarah Purba",
+      description:
+        "Museum menyimpan beragam artefak prasejarah bernilai tinggi:<br/><br/>• Fosil asli dan replika manusia purba nusantara.<br/>• Spesimen keanekaragaman flora dan fauna purba kala.<br/>• Artefak batu dan peralatan kehidupan zaman berburu.",
+      link: "https://research.fkkmk.ugm.ac.id/museum-bio-paleoantropologi-dan-anatomi/",
+    },
+    {
+      id: "mus-1",
+      title: "Profil & Lokasi Museum",
+      description:
+        "<b>Museum Bio-Paleoantropologi dan Anatomi</b> merupakan pusat rujukan ilmu pengetahuan di bawah naungan FK-KMK UGM yang memperkenalkan sejarah evolusi dan anatomi.<br/><br/><b>Lokasi Gedung:</b><br/>Kompleks FK-KMK UGM, Jalan Farmako, Sekip Utara, Yogyakarta.",
+      image: "/museum1.png",
+      link: "https://research.fkkmk.ugm.ac.id/museum-bio-paleoantropologi-dan-anatomi/",
     },
   ]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center py-12 px-4 overflow-x-hidden antialiased selection:bg-indigo-500/30">
-      <div className="text-center mb-16 max-w-2xl px-4">
-        <h1 className="text-4xl font-black tracking-tight sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-300 mt-4">
+    <main className="min-h-screen bg-slate-950 text-white flex flex-col items-center py-12 px-4 overflow-x-hidden antialiased selection:bg-amber-500/30">
+      {/* HEADER UTAMA */}
+      <div className="text-center mb-8 max-w-2xl">
+        <h1 className="text-4xl font-black tracking-tight sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-slate-100 to-yellow-500 mt-4">
           PionirPedia
         </h1>
+        <p className="text-sm text-slate-400 mt-1">
+          Pusat Informasi Aksesibilitas Kampus Premium
+        </p>
       </div>
 
-      <div className="w-full max-w-5xl flex flex-col gap-24 items-center">
-        {/* DEK 1: PERPUSTAKAAN UGM */}
+      {/* NAVIGASI TAB SELEKTOR (Fokus Responsif & Premium) */}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-10 bg-slate-900/40 p-2.5 rounded-2xl border border-slate-800/80 backdrop-blur-md max-w-full">
+        <button
+          onClick={() => setActiveTab("gmc")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 ${
+            activeTab === "gmc"
+              ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 shadow-lg shadow-amber-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+          }`}
+        >
+          <Stethoscope className="w-4 h-4" />
+          KLINIK GMC
+        </button>
+
+        <button
+          onClick={() => setActiveTab("library")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 ${
+            activeTab === "library"
+              ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 shadow-lg shadow-amber-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          PERPUSTAKAAN PUSAT
+        </button>
+
+        <button
+          onClick={() => setActiveTab("museum")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 ${
+            activeTab === "museum"
+              ? "bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 shadow-lg shadow-amber-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+          }`}
+        >
+          <Skull className="w-4 h-4" />
+          MUSEUM ANATOMI
+        </button>
+      </div>
+
+      {/* AREA RETRIEVE KONTEN DECK */}
+      <div className="w-full max-w-5xl flex flex-col items-center">
         <section className="w-full flex flex-col items-center">
           <div className="text-center mb-2">
-            <h2 className="text-2xl font-bold text-slate-300 tracking-tight">
-              1. Perpustakaan Universitas Gadjah Mada
+            <h2 className="text-xl font-bold text-slate-200 tracking-tight transition-all duration-300">
+              {activeTab === "gmc" && "Gadjah Mada Medical Center"}
+              {activeTab === "library" && "Perpustakaan Pusat UGM"}
+              {activeTab === "museum" &&
+                "Museum Bio-Paleoantropologi & Anatomi"}
             </h2>
-            <p className="text-md text-slate-200">
-              Menjelajahi jendela dunia, layanan literasi, dan fasilitas modern
-              penunjang riset.
-            </p>
           </div>
-          <div className="w-full flex justify-center items-center min-h-[4vh] relative">
-            <Deck initialCards={perpustakaanCards} />
-          </div>
-        </section>
 
-        {/* DEK 2: GMC HEALTH CENTER */}
-        <section className="w-full flex flex-col items-center">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
-              2. Gadjah Mada Medical Center (GMC)
-            </h2>
-            <p className="text-md text-slate-300 mt-1">
-              Pusat layanan kesehatan primer, poliklinik spesifik, dan regulasi
-              pelayanan pasien.
-            </p>
-          </div>
-          <div className="w-full flex justify-center items-center min-h-[50vh] relative">
-            <Deck initialCards={gmcCards} />
-          </div>
-        </section>
-
-        {/* DEK 3: MUSEUM BIO-PALEOANTROPOLOGI DAN ANATOMI */}
-        <section className="w-full flex flex-col items-center">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
-              3. Museum Bio-Paleoantropologi dan Anatomi
-            </h2>
-            <p className="text-md text-slate-200 mt-1">
-              Wahana edukasi rekam jejak evolusi manusia purba dan kompleksitas
-              anatomi tubuh.
-            </p>
-          </div>
-          <div className="w-full flex justify-center items-center min-h-[50vh] relative">
-            <Deck initialCards={museumCards} />
+          <div className="w-full flex justify-center items-center relative">
+            {activeTab === "gmc" && (
+              <Deck key="gmc-deck" initialCards={gmcCards} />
+            )}
+            {activeTab === "library" && (
+              <Deck key="lib-deck" initialCards={libraryCards} />
+            )}
+            {activeTab === "museum" && (
+              <Deck key="mus-deck" initialCards={museumCards} />
+            )}
           </div>
         </section>
       </div>
-
-      {/* FOOTER SOURCE */}
-      <footer className="mt-24 border-t border-slate-900 pt-8 w-full max-w-2xl text-center text-[16px] text-slate-100 tracking-wide flex flex-col gap-2">
-        <p>
-          Sumber data resmi:{" "}
-          <a
-            href="https://ugm.ac.id"
-            target="_blank"
-            rel="noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
-          >
-            ugm.ac.id
-          </a>{" "}
-          |{" "}
-          <a
-            href="https://research.fkkmk.ugm.ac.id"
-            target="_blank"
-            rel="noreferrer"
-            className="text-indigo-400 hover:text-indigo-300 underline transition-colors"
-          >
-            research.fkkmk.ugm.ac.id
-          </a>
-        </p>
-        <p className="text-[12px] text-slate-200">
-          Disusun ulang secara komprehensif sesuai dengan standar ortografi EYD
-          Edisi V.
-        </p>
-      </footer>
     </main>
   );
 }
